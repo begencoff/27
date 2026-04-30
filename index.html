@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubOguz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <meta name="description"
+        content="SubOguz - A premium, modern student submission and attendance management system with advanced analytics.">
+    <style>
+        :root {
+            /* Premium Palette - Ultra Modern HSL */
+            --primary-h: 250;
+            --primary-s: 85%;
+            --primary-l: 64%;
+            --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
+            --primary-rgb: 104, 91, 255;
+            --primary-glow: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.3);
+            --primary-light: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.1);
+            --primary-dark: hsl(var(--primary-h), var(--primary-s), 45%);
+
+            --bg-main: #fcfdfe;
+            --surface: rgba(255, 255, 255, 0.7);
+            --surface-solid: #ffffff;
+            --text-main: #0a0f1d;
+            --text-muted: #64748b;
+            --border: rgba(226, 232, 240, 0.8);
+
+            /* Enhanced Glassmorphism & Depth */
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --glass-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.05);
+            --premium-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 15px -1px rgba(0, 0, 0, 0.03);
+
+            /* Status Colors */
+            --absent: #ff3366;
+            --aylyk: #0088ff;
+            --aralyk: #9933ff;
+            --final: #00cc88;
+
+            /* Animations & Radius */
+            --transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            --radius-xl: 36px;
+            --radius-lg: 28px;
+            --radius-md: 20px;
+            --radius-sm: 14px;
+            --font-main: 'Outfit', sans-serif;
+            --font-alt: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --primary-l: 68%;
+            --bg-main: #05070a;
+            --surface: rgba(13, 17, 23, 0.7);
+            --surface-solid: #0d1117;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+
+            --glass-bg: rgba(13, 17, 23, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --glass-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+
+        .animate-item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .animate-item.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Top Progress Bar */
+        #top-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--aralyk), var(--primary));
+            z-index: 9999;
+            width: 0;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* Cursor Glow */
+        #cursor-glow {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
+            position: fixed;
+            pointer-events: none;
+            z-index: -1;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.5s ease;
+            opacity: 0;
+        }
+
+        body:hover #cursor-glow {
+            opacity: 1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(at 0% 0%, hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* --- Layout --- */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- Sidebar --- */
+        aside {
+            width: 300px;
+            background: var(--surface);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border-right: 1px solid var(--border);
+            padding: 3.5rem 1.8rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: var(--transition);
+            box-shadow: var(--glass-shadow);
+            animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 1rem 0.5rem;
+            margin-bottom: 4.5rem;
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-main);
+            letter-spacing: -2.5px;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, var(--text-main) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+        }
+
+        .logo-dot {
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 5px;
+            rotate: 45deg;
+            box-shadow: 0 0 25px var(--primary-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-dot::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.2;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+        }
+
+        .nav-menu {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 1.1rem 1.4rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-muted);
+            transition: var(--transition);
+            font-weight: 700;
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -0.2px;
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(8px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 12px 30px -8px var(--primary-glow);
+        }
+
+        .nav-item.active svg {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            transition: var(--transition);
+            stroke-width: 2.2;
+        }
+
+        .nav-item:hover svg {
+            transform: scale(1.15) rotate(-5deg);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1rem;
+            background: var(--primary-light);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .user-profile:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 15px var(--primary-glow);
+        }
+
+        /* --- Main Content --- */
+        main {
+            margin-left: 300px;
+            flex-grow: 1;
+            padding: 3.5rem 5rem;
+            transition: var(--transition);
+            animation: fadeIn 0.8s ease-out;
+            max-width: 1600px;
+            margin-right: auto;
+        }
+
+        /* --- Topbar --- */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4rem;
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem 2.5rem;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .search-box {
+            position: relative;
+            width: 420px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.9rem 1.2rem 0.9rem 3.2rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--surface-solid);
+            color: var(--text-main);
+            outline: none;
+            transition: var(--transition);
+            font-size: 0.95rem;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light), 0 10px 20px -10px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        /* --- Theme Toggle --- */
+        .theme-toggle {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface-solid);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+            transform: rotate(15deg);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        /* --- Dashboard Cards --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .stat-card {
+            background: var(--surface-solid);
+            padding: 2.8rem;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            box-shadow: var(--premium-shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 40px 80px -20px rgba(var(--primary-rgb), 0.2);
+            border-color: var(--primary-glow);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, var(--primary-light) 0%, transparent 70%);
+            opacity: 0;
+            transition: var(--transition);
+            pointer-events: none;
+        }
+
+        .stat-card:hover::after {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            opacity: 0.12;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            z-index: 1;
+        }
+
+        .stat-card:nth-child(1)::before {
+            background: var(--primary);
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='9' cy='7' r='4'%3E%3C/circle%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'%3E%3C/path%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'%3E%3C/path%3E%3C/svg%3E") no-repeat center / 24px;
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='9' cy='7' r='4'%3E%3C/circle%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'%3E%3C/path%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'%3E%3C/path%3E%3C/svg%3E") no-repeat center / 24px;
+        }
+
+        .stat-card:nth-child(2)::before {
+            background: var(--absent);
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18.36 6.64a9 9 0 1 1-12.73 0'%3E%3C/path%3E%3Cline x1='12' y1='2' x2='12' y2='12'%3E%3C/line%3E%3C/svg%3E") no-repeat center / 24px;
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18.36 6.64a9 9 0 1 1-12.73 0'%3E%3C/path%3E%3Cline x1='12' y1='2' x2='12' y2='12'%3E%3C/line%3E%3C/svg%3E") no-repeat center / 24px;
+        }
+
+        .stat-card:nth-child(3)::before {
+            background: var(--primary);
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'%3E%3C/path%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'%3E%3C/path%3E%3C/svg%3E") no-repeat center / 24px;
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z'%3E%3C/path%3E%3Cpath d='M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'%3E%3C/path%3E%3C/svg%3E") no-repeat center / 24px;
+        }
+
+        .stat-card:hover::before {
+            transform: scale(1.1) rotate(10deg);
+            opacity: 0.2;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: var(--font-alt);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-label::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -2px;
+            line-height: 1;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            padding: 0.9rem 2rem;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            user-select: none;
+            font-family: var(--font-alt);
+            text-transform: capitalize;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.96);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 10px 30px -10px var(--primary-glow);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 15px 40px -10px var(--primary-glow);
+            filter: brightness(1.05);
+        }
+
+        .btn-primary.pulse {
+            animation: pulseBtn 2s infinite;
+        }
+
+        @keyframes pulseBtn {
+            0% {
+                box-shadow: 0 0 0 0 var(--primary-glow);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px transparent;
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 transparent;
+            }
+        }
+
+        .btn-ghost {
+            background: var(--primary-light);
+            color: var(--primary);
+            backdrop-filter: blur(8px);
+        }
+
+        .btn-ghost:hover {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 25px -10px var(--primary-glow);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.08);
+            color: var(--absent);
+        }
+
+        .btn-danger:hover {
+            background: var(--absent);
+            color: white;
+            box-shadow: 0 10px 25px -10px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-icon {
+            padding: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+        }
+
+        /* --- Ticket System --- */
+        .ticket-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.6rem 1.4rem;
+            border-radius: 10px;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .tab-btn.active {
+            background: var(--surface-solid);
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .view-transition {
+            animation: viewFade 0.5s ease-out;
+        }
+
+        @keyframes viewFade {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ticket-card {
+            background: var(--surface-solid);
+            border-radius: var(--radius-lg);
+            display: flex;
+            position: relative;
+            box-shadow: var(--premium-shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            overflow: visible;
+            margin-bottom: 1.5rem;
+            background-image: linear-gradient(120deg, transparent 0%, transparent 40%, rgba(255, 255, 255, 0.05) 50%, transparent 60%, transparent 100%);
+            background-size: 200% 100%;
+        }
+
+        .ticket-card:hover {
+            transform: scale(1.015) translateY(-8px);
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.12);
+            border-color: var(--primary-glow);
+            background-position: 100% 0;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, background-position 0.8s ease;
+        }
+
+        /* Real Perforation Effect */
+        .ticket-card::before,
+        .ticket-card::after {
+            content: '';
+            position: absolute;
+            left: calc(100% - 260px - 10px);
+            width: 20px;
+            height: 20px;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            z-index: 2;
+            transition: var(--transition);
+        }
+
+        .ticket-card::before {
+            top: -11px;
+            box-shadow: inset 0 -4px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .ticket-card::after {
+            bottom: -11px;
+            box-shadow: inset 0 4px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .ticket-main {
+            flex: 1;
+            padding: 2.5rem 3.5rem;
+            display: grid;
+            grid-template-columns: 2.2fr 1.2fr 1fr;
+            align-items: center;
+            position: relative;
+        }
+
+        .ticket-divider {
+            width: 2px;
+            height: calc(100% - 40px);
+            align-self: center;
+            border-left: 2px dashed var(--border);
+            margin: 0;
+            position: relative;
+        }
+
+        .ticket-stub {
+            width: 260px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            background: linear-gradient(to bottom, rgba(var(--primary-rgb), 0.03), transparent);
+            transition: var(--transition);
+            border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+            position: relative;
+        }
+
+        .qr-placeholder {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            opacity: 0.15;
+            color: var(--text-main);
+            transition: var(--transition);
+        }
+
+        .ticket-card:hover .qr-placeholder {
+            opacity: 0.4;
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .student-info h4 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .student-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-family: var(--font-alt);
+        }
+
+        .meta-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .meta-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .meta-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Enhanced Badges */
+        .badge {
+            padding: 0.6rem 1.4rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(8px);
+            border: 1px solid transparent;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .badge-absent {
+            background: hsla(350, 100%, 65%, 0.12);
+            color: #ff4757;
+            border-color: rgba(255, 71, 87, 0.2);
+        }
+
+        .badge-aylyk {
+            background: hsla(210, 100%, 60%, 0.12);
+            color: #2e86de;
+            border-color: rgba(46, 134, 222, 0.2);
+        }
+
+        .badge-aralyk {
+            background: hsla(280, 85%, 65%, 0.12);
+            color: #a55eea;
+            border-color: rgba(165, 94, 234, 0.2);
+        }
+
+        .badge-final {
+            background: hsla(150, 85%, 45%, 0.12);
+            color: #20bf6b;
+            border-color: rgba(32, 191, 107, 0.2);
+        }
+
+        /* --- Modals & Toasts --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.4);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal {
+            background: var(--surface-solid);
+            width: 95%;
+            max-width: 580px;
+            border-radius: var(--radius-xl);
+            padding: 3.5rem;
+            transform: scale(0.95) translateY(30px);
+            transition: var(--transition);
+            border: 1px solid var(--border);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.4);
+            background-image: radial-gradient(at 0% 0%, var(--primary-light) 0px, transparent 50%);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.4rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--bg-main);
+            color: var(--text-main);
+            outline: none;
+            transition: var(--transition);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            background: var(--surface-solid);
+            box-shadow: 0 0 0 4px var(--primary-light), 0 10px 20px -10px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        /* Custom Dropdown Styling */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .select-trigger {
+            width: 100%;
+            padding: 1rem 1.4rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--bg-main);
+            color: var(--text-main);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .select-trigger:hover {
+            border-color: var(--primary);
+            background: var(--surface-solid);
+        }
+
+        .select-trigger.active {
+            border-color: var(--primary);
+            background: var(--surface-solid);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .custom-options {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 0;
+            right: 0;
+            background: var(--surface-solid);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: var(--transition);
+            overflow: hidden;
+            padding: 8px;
+        }
+
+        .custom-options.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .custom-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .custom-option:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .custom-option.selected {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Hide the native select but keep it for form values */
+        .hidden-select {
+            display: none;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 2000;
+        }
+
+        .toast {
+            background: var(--surface-light);
+            padding: 1.2rem 1.8rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 5px solid var(--primary);
+            transform: translateX(120%);
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* --- Empty State --- */
+        .empty-state {
+            padding: 6rem 2rem;
+            text-align: center;
+            background: var(--surface-light);
+            border-radius: var(--radius);
+            border: 2px dashed var(--border);
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            color: var(--primary);
+            opacity: 0.2;
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 1200px) {
+            main {
+                padding: 2rem;
+            }
+
+            .ticket-main {
+                grid-template-columns: 1.5fr 1fr 1fr;
+                padding: 1.5rem;
+            }
+
+            .ticket-stub {
+                width: 200px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            aside {
+                width: 90px;
+                padding: 2rem 1rem;
+            }
+
+            aside span,
+            aside .logo span {
+                display: none;
+            }
+
+            main {
+                margin-left: 90px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            aside {
+                width: 320px;
+                transform: translateX(-100%);
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                box-shadow: 40px 0 100px rgba(0, 0, 0, 0.4);
+                background: var(--surface-solid);
+                padding: 4rem 2rem;
+                z-index: 2001;
+            }
+
+            aside.show {
+                transform: translateX(0);
+            }
+
+            aside span,
+            aside .logo span {
+                display: block !important;
+                font-size: 1.1rem;
+            }
+
+            .nav-item {
+                padding: 1.2rem 1.6rem;
+                font-size: 1.1rem;
+            }
+
+            .mobile-toggle {
+                display: flex !important;
+            }
+
+            main {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .topbar {
+                flex-direction: column;
+                gap: 2rem;
+                align-items: stretch;
+                padding: 2rem;
+            }
+
+            .top-actions {
+                flex-direction: column;
+                width: 100%;
+                gap: 1.5rem;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .view-tabs {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .tab-btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .ticket-card {
+                flex-direction: column;
+            }
+
+            .mobile-close {
+                display: flex !important;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .ticket-main {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 2.5rem;
+            }
+
+            .student-info h4 {
+                font-size: 1.6rem !important;
+            }
+
+            .meta-value {
+                font-size: 1.1rem !important;
+            }
+
+            .ticket-divider {
+                width: 100%;
+                height: 1px;
+                border-left: none;
+                border-top: 2px dashed var(--border);
+                margin: 0;
+            }
+
+            .ticket-stub {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="top-progress"></div>
+    <div id="cursor-glow"></div>
+    <div id="toast-container"></div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <button class="btn btn-ghost btn-icon mobile-close"
+                style="display: none; position: absolute; top: 1.5rem; right: 1.5rem;" onclick="toggleSidebar()">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="logo">
+                <div class="logo-dot"></div>
+                <span>SubOguz</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" id="nav-active-side" onclick="switchView('active')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                    </svg>
+                    <span>Submissions</span>
+                </li>
+                <li class="nav-item" id="nav-deleted-side" onclick="switchView('deleted')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Deleted</span>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <div class="theme-section"
+                    style="margin-bottom: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                    <button class="nav-item" onclick="toggleTheme()"
+                        style="width: 100%; border: none; background: var(--primary-light); color: var(--primary); justify-content: flex-start; gap: 12px; padding: 1.1rem 1.4rem; border-radius: var(--radius-md);">
+                        <svg id="theme-icon-side" viewBox="0 0 24 24" width="22" height="22" fill="none"
+                            stroke="currentColor" stroke-width="2.5">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        <span style="font-weight: 700;">Dark Mode</span>
+                    </button>
+                </div>
+                <div class="user-profile"
+                    style="background: var(--surface-solid); border: 1px solid var(--border); box-shadow: var(--premium-shadow);">
+                    <div class="avatar">A</div>
+                    <div class="user-info">
+                        <div style="font-weight: 800; font-size: 0.9rem;">Admin User</div>
+                        <div style="font-size: 0.75rem; opacity: 0.7;">System Manager</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main>
+            <div class="topbar">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn btn-ghost btn-icon mobile-toggle" style="display: none;"
+                        onclick="toggleSidebar()">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 id="view-title" style="font-size: 2rem; font-weight: 900; letter-spacing: -1px;">Submissions
+                        </h1>
+                        <p id="view-desc" style="color: var(--text-muted); font-size: 0.95rem; font-weight: 500;">Manage
+                            student attendance
+                            and exams</p>
+                    </div>
+                </div>
+
+                <div class="top-actions">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2.5"
+                            style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="Search by name, ID or subject..."
+                            oninput="renderTickets()">
+                    </div>
+
+                    <button class="btn btn-primary pulse" onclick="toggleModal('add')">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="3">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Add New</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Submissions</div>
+                    <div class="stat-value" id="count-total">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Absent Cases</div>
+                    <div class="stat-value" id="count-absent" style="color: var(--absent)">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Exams</div>
+                    <div class="stat-value" id="count-exams" style="color: var(--primary)">0</div>
+                </div>
+            </div>
+
+            <!-- Ticket List -->
+            <div
+                style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <h3 style="font-weight: 800; font-size: 1.2rem;">Live Records</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <div class="custom-select-wrapper" id="sortDropdown" style="width: 180px;">
+                        <div class="select-trigger" onclick="toggleCustomSelect('sortDropdown')">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                    stroke-width="2.5">
+                                    <path d="M3 6h18M6 12h12M10 18h4"></path>
+                                </svg>
+                                <span id="sortLabel">Newest First</span>
+                            </div>
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="3">
+                                <path d="M6 9l6 6 6-6"></path>
+                            </svg>
+                        </div>
+                        <div class="custom-options">
+                            <div class="custom-option selected"
+                                onclick="selectOption('sortDropdown', 'newest', 'Newest First')">Newest First</div>
+                            <div class="custom-option" onclick="selectOption('sortDropdown', 'oldest', 'Oldest First')">
+                                Oldest First</div>
+                            <div class="custom-option" onclick="selectOption('sortDropdown', 'az', 'A - Z')">A - Z</div>
+                            <div class="custom-option" onclick="selectOption('sortDropdown', 'za', 'Z - A')">Z - A</div>
+                        </div>
+                        <select id="sortType" class="hidden-select" onchange="renderTickets()">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="az">A - Z</option>
+                            <option value="za">Z - A</option>
+                        </select>
+                    </div>
+                    <div class="custom-select-wrapper" id="filterDropdown" style="width: 220px;">
+                        <div class="select-trigger" onclick="toggleCustomSelect('filterDropdown')">
+                            <span id="filterLabel">All Types</span>
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="3">
+                                <path d="M6 9l6 6 6-6"></path>
+                            </svg>
+                        </div>
+                        <div class="custom-options">
+                            <div class="custom-option selected"
+                                onclick="selectOption('filterDropdown', 'all', 'All Types')">All Types
+                            </div>
+                            <div class="custom-option" onclick="selectOption('filterDropdown', 'Absent', 'Absent')">
+                                Absent
+                            </div>
+                            <div class="custom-option"
+                                onclick="selectOption('filterDropdown', 'Aýlyk synag', 'Aýlyk synag')">Aýlyk synag</div>
+                            <div class="custom-option"
+                                onclick="selectOption('filterDropdown', 'Aralyk synag', 'Aralyk synag')">Aralyk synag
+                            </div>
+                            <div class="custom-option"
+                                onclick="selectOption('filterDropdown', 'Final synag', 'Final synag')">Final synag</div>
+                        </div>
+                        <select id="filterType" class="hidden-select" onchange="renderTickets()">
+                            <option value="all">All Types</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Aýlyk synag">Aýlyk synag</option>
+                            <option value="Aralyk synag">Aralyk synag</option>
+                            <option value="Final synag">Final synag</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ticketContainer" class="ticket-container">
+                <!-- Tickets will be injected here -->
+            </div>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                    <polyline points="13 2 13 9 20 9"></polyline>
+                </svg>
+                <h2 style="font-weight: 800; margin-bottom: 0.5rem;">No submissions found</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Adjust your search or add a new student record
+                    to the system.</p>
+                <button class="btn btn-primary" style="margin: 0 auto;" onclick="toggleModal('add')">Add First
+                    Submission</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 id="modalTitle"
+                style="font-weight: 900; margin-bottom: 2rem; font-size: 1.6rem; letter-spacing: -0.5px;">New Submission
+            </h2>
+            <form id="submissionForm">
+                <input type="hidden" id="editIndex">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" id="fullName" placeholder="e.g. Aman Amanow" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Student ID</label>
+                        <input type="text" class="form-input" id="studentId" placeholder="ID" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Group</label>
+                        <input type="text" class="form-input" id="groupName" placeholder="Group" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reg Code</label>
+                        <input type="text" class="form-input" id="registrationCode" placeholder="Code">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subject</label>
+                    <input type="text" class="form-input" id="subjectName" placeholder="e.g. Computer Science" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Lecturer</label>
+                    <input type="text" class="form-input" id="lecturerName" placeholder="e.g. Batyrov B" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Month</label>
+                    <div class="custom-select-wrapper" id="monthDropdown">
+                        <div class="select-trigger" onclick="toggleCustomSelect('monthDropdown')">
+                            <span id="monthLabel">January</span>
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="3">
+                                <path d="M6 9l6 6 6-6"></path>
+                            </svg>
+                        </div>
+                        <div class="custom-options" style="max-height: 200px; overflow-y: auto;">
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'January', 'January')">
+                                January</div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'February', 'February')">
+                                February</div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'March', 'March')">March
+                            </div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'April', 'April')">April
+                            </div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'May', 'May')">May</div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'June', 'June')">June
+                            </div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'July', 'July')">July
+                            </div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'August', 'August')">
+                                August</div>
+                            <div class="custom-option"
+                                onclick="selectOption('monthDropdown', 'September', 'September')">September</div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'October', 'October')">
+                                October</div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'November', 'November')">
+                                November</div>
+                            <div class="custom-option" onclick="selectOption('monthDropdown', 'December', 'December')">
+                                December</div>
+                        </div>
+                        <select id="monthName" class="hidden-select" required>
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-input" id="startDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-input" id="endDate" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Submission Type</label>
+                    <div class="custom-select-wrapper" id="typeDropdown">
+                        <div class="select-trigger" onclick="toggleCustomSelect('typeDropdown')">
+                            <span id="typeLabel">Absent</span>
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="3">
+                                <path d="M6 9l6 6 6-6"></path>
+                            </svg>
+                        </div>
+                        <div class="custom-options" style="bottom: auto; top: calc(100% + 8px);">
+                            <div class="custom-option selected"
+                                onclick="selectOption('typeDropdown', 'Absent', 'Absent')">Absent</div>
+                            <div class="custom-option"
+                                onclick="selectOption('typeDropdown', 'Aýlyk synag', 'Aýlyk synag')">Aýlyk synag</div>
+                            <div class="custom-option"
+                                onclick="selectOption('typeDropdown', 'Aralyk synag', 'Aralyk synag')">Aralyk synag
+                            </div>
+                            <div class="custom-option"
+                                onclick="selectOption('typeDropdown', 'Final synag', 'Final synag')">Final synag</div>
+                        </div>
+                        <select id="submissionType" class="hidden-select" required>
+                            <option value="Absent">Absent</option>
+                            <option value="Aýlyk synag">Aýlyk synag</option>
+                            <option value="Aralyk synag">Aralyk synag</option>
+                            <option value="Final synag">Final synag</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 2.5rem;">
+                    <button type="button" class="btn btn-ghost" style="flex: 1" onclick="toggleModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 2; justify-content: center;">Save
+                        Ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let submissions = (JSON.parse(localStorage.getItem('suboguz_submissions')) ||
+            JSON.parse(localStorage.getItem('tutus_submissions')) ||
+            JSON.parse(localStorage.getItem('sanlyoguz_submissions')) || []).map(s => {
+                if (s.type === 'Gelmedi') s.type = 'Absent';
+                return s;
+            });
+        let deletedSubmissions = (JSON.parse(localStorage.getItem('tutus_deleted')) ||
+            JSON.parse(localStorage.getItem('sanlyoguz_deleted')) || []).map(s => {
+                if (s.type === 'Gelmedi') s.type = 'Absent';
+                return s;
+            });
+        let currentView = 'active';
+
+        // Scroll Reveal Observer
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            // Theme Init
+            const savedTheme = localStorage.getItem('tutus_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+
+            renderTickets();
+            updateStats();
+
+            // Cursor Glow Logic
+            const glow = document.getElementById('cursor-glow');
+            document.addEventListener('mousemove', (e) => {
+                glow.style.left = e.clientX + 'px';
+                glow.style.top = e.clientY + 'px';
+            });
+
+            // Top Progress Logic
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                document.getElementById("top-progress").style.width = scrolled + "%";
+            });
+
+            // Close sidebar on outside click (mobile)
+            document.addEventListener('click', (e) => {
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.querySelector('.mobile-toggle');
+                if (window.innerWidth <= 768 &&
+                    sidebar && !sidebar.contains(e.target) &&
+                    toggle && !toggle.contains(e.target) &&
+                    sidebar.classList.contains('show')) {
+                    sidebar.classList.remove('show');
+                }
+            });
+        });
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            localStorage.setItem('tutus_theme', target);
+            updateThemeIcon(target);
+        }
+
+        function updateThemeIcon(theme) {
+            const iconSide = document.getElementById('theme-icon-side');
+            if (theme === 'dark') {
+                const darkSvg = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+                if (iconSide) iconSide.innerHTML = darkSvg;
+            } else {
+                const lightSvg = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+                if (iconSide) iconSide.innerHTML = lightSvg;
+            }
+        }
+
+        function toggleCustomSelect(id) {
+            const wrapper = document.getElementById(id);
+            const options = wrapper.querySelector('.custom-options');
+            const trigger = wrapper.querySelector('.select-trigger');
+
+            // Close others
+            document.querySelectorAll('.custom-options').forEach(el => {
+                if (el !== options) el.classList.remove('show');
+            });
+            document.querySelectorAll('.select-trigger').forEach(el => {
+                if (el !== trigger) el.classList.remove('active');
+            });
+
+            options.classList.toggle('show');
+            trigger.classList.toggle('active');
+        }
+
+        function selectOption(id, value, label) {
+            const wrapper = document.getElementById(id);
+            const nativeSelect = wrapper.querySelector('select');
+            const labelEl = wrapper.querySelector('span');
+
+            nativeSelect.value = value;
+            labelEl.textContent = label;
+
+            // Update selected class
+            wrapper.querySelectorAll('.custom-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.textContent === label);
+            });
+
+            toggleCustomSelect(id);
+
+            // Trigger change for filter
+            if (nativeSelect.onchange) nativeSelect.onchange();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+
+        function switchView(view) {
+            currentView = view;
+
+            // Update Sidebar Tabs
+            const activeSide = document.getElementById('nav-active-side');
+            const deletedSide = document.getElementById('nav-deleted-side');
+            if (activeSide) activeSide.classList.toggle('active', view === 'active');
+            if (deletedSide) deletedSide.classList.toggle('active', view === 'deleted');
+
+            const title = document.getElementById('view-title');
+            const desc = document.getElementById('view-desc');
+            const container = document.getElementById('ticketContainer');
+
+            // Add transition
+            container.classList.remove('view-transition');
+            void container.offsetWidth; // Trigger reflow
+            container.classList.add('view-transition');
+
+            if (view === 'active') {
+                title.textContent = 'Submissions';
+                desc.textContent = 'Manage student attendance and exams';
+            } else {
+                title.textContent = 'Latest Deleted';
+                desc.textContent = 'View and restore deleted records';
+            }
+
+            renderTickets();
+
+            // Close sidebar on mobile after selection
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('show');
+            }
+        }
+
+        function renderTickets() {
+            const container = document.getElementById('ticketContainer');
+            const emptyState = document.getElementById('emptyState');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterType = document.getElementById('filterType').value;
+            const sortType = document.getElementById('sortType').value;
+            const listToRender = currentView === 'active' ? submissions : deletedSubmissions;
+
+            let filtered = listToRender.map((s, originalIndex) => ({ ...s, originalIndex }))
+                .filter(s => {
+                    const matchesSearch = (s.fullName || '').toLowerCase().includes(searchTerm) ||
+                        (s.studentId || '').toLowerCase().includes(searchTerm) ||
+                        (s.subject || '').toLowerCase().includes(searchTerm) ||
+                        (s.lecturer && s.lecturer.toLowerCase().includes(searchTerm)) ||
+                        (s.month && s.month.toLowerCase().includes(searchTerm));
+                    const matchesFilter = filterType === 'all' || s.type === filterType;
+                    return matchesSearch && matchesFilter;
+                });
+
+            // Sorting Logic
+            filtered.sort((a, b) => {
+                if (sortType === 'az') return (a.fullName || '').localeCompare(b.fullName || '');
+                if (sortType === 'za') return (b.fullName || '').localeCompare(a.fullName || '');
+
+                // Date sorting (assuming DD/MM/YYYY format from locale string or ISO from input)
+                const parseDate = (dStr) => {
+                    if (!dStr) return 0;
+                    if (dStr.includes('/')) {
+                        const [d, m, y] = dStr.split('/');
+                        return new Date(y, m - 1, d).getTime();
+                    }
+                    return new Date(dStr).getTime();
+                };
+
+                const dateA = parseDate(a.startDate || a.date);
+                const dateB = parseDate(b.startDate || b.date);
+
+                if (sortType === 'newest') return dateB - dateA;
+                if (sortType === 'oldest') return dateA - dateB;
+                return 0;
+            });
+
+            container.innerHTML = '';
+            updateStats();
+
+            if (filtered.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            filtered.forEach((s, i) => {
+                const index = s.originalIndex;
+                const badgeClass = `badge-${(s.type || 'absent').toLowerCase().split(' ')[0].replace('ý', 'y')}`;
+                const ticket = document.createElement('div');
+                ticket.className = 'ticket-card animate-item';
+                // Remove animationDelay since we use Observer
+
+                let actions = '';
+                if (currentView === 'active') {
+                    actions = `
+                        <button class="btn btn-ghost btn-icon" onclick="exportToWord(${index})" title="Export to Word">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                        </button>
+                        <button class="btn btn-ghost btn-icon" onclick="editSubmission(${index})" title="Edit">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="btn btn-ghost btn-icon btn-danger" onclick="deleteSubmission(${index})" title="Delete">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    `;
+                } else {
+                    actions = `
+                        <button class="btn btn-primary" onclick="restoreSubmission(${index})" style="padding: 0.6rem 1.2rem; font-size: 0.8rem;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" style="margin-right: 4px;"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                            Restore
+                        </button>
+                        <button class="btn btn-ghost btn-icon btn-danger" onclick="permanentDelete(${index})" title="Delete Permanently">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    `;
+                }
+
+                ticket.innerHTML = `
+                    <div class="ticket-main">
+                        <div class="student-info">
+                            <h4 style="font-size: 1.4rem; margin-bottom: 0.5rem; letter-spacing: -0.5px;">${s.fullName || 'Unnamed Student'}</h4>
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                <p style="font-family: var(--font-alt); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                                    <span style="color: var(--primary); font-weight: 800;">ID:</span> 
+                                    <span style="font-weight: 600;">${s.studentId || 'N/A'}</span>
+                                </p>
+                                <p style="font-family: var(--font-alt); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                                    <span style="color: var(--primary); font-weight: 800;">GROUP:</span> 
+                                    <span style="font-weight: 600;">${s.group || 'N/A'}</span>
+                                </p>
+                                <p style="font-family: var(--font-alt); font-size: 0.85rem; display: flex; align-items: center; gap: 5px;">
+                                    <span style="color: var(--primary); font-weight: 800;">REG:</span> 
+                                    <span style="font-weight: 600;">${s.registrationCode || 'N/A'}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="meta-group">
+                            <span class="meta-label" style="display: flex; align-items: center; gap: 6px;">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                Course & Lecturer
+                            </span>
+                            <span class="meta-value" style="font-size: 1.1rem; color: var(--text-main);">${s.subject || 'N/A'}</span>
+                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-top: 2px;">${s.lecturer || 'N/A'}</span>
+                        </div>
+                        <div class="meta-group">
+                            <span class="meta-label" style="display: flex; align-items: center; gap: 6px;">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                Schedule
+                            </span>
+                            <span class="meta-value" style="color: var(--primary);">${s.month || 'N/A'}</span>
+                            <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-top: 2px;">${s.startDate || ''} ${s.endDate ? '→ ' + s.endDate : ''}</span>
+                        </div>
+                    </div>
+                    <div class="ticket-divider"></div>
+                    <div class="ticket-stub">
+                        <div class="qr-placeholder">
+                            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="3" height="3"></rect>
+                                <rect x="7" y="14" width="3" height="3"></rect>
+                                <rect x="3" y="18" width="3" height="3"></rect>
+                                <rect x="7" y="18" width="3" height="3"></rect>
+                            </svg>
+                        </div>
+                        <div class="meta-group" style="align-items: center; gap: 10px;">
+                            <span class="badge ${badgeClass}" style="padding: 0.7rem 1.4rem; font-size: 0.75rem;">${s.type || 'N/A'}</span>
+                            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7;">Verified: ${s.date || ''}</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; width: 100%; justify-content: center;">
+                            ${actions}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(ticket);
+                revealObserver.observe(ticket);
+            });
+        }
+
+        function updateStats() {
+            const list = currentView === 'active' ? submissions : deletedSubmissions;
+            document.getElementById('count-total').textContent = list.length;
+            document.getElementById('count-absent').textContent = list.filter(s => s.type === 'Absent').length;
+            document.getElementById('count-exams').textContent = list.filter(s => (s.type || '').includes('synag')).length;
+
+            // Update labels based on view
+            const cards = document.querySelectorAll('.stat-label');
+            if (currentView === 'active') {
+                cards[0].textContent = 'Total Submissions';
+                cards[1].textContent = 'Absent Cases';
+                cards[2].textContent = 'Active Exams';
+            } else {
+                cards[0].textContent = 'Deleted Total';
+                cards[1].textContent = 'Deleted Absent';
+                cards[2].textContent = 'Deleted Exams';
+            }
+        }
+
+        // CRUD Operations
+        const modal = document.getElementById('modalOverlay');
+        const form = document.getElementById('submissionForm');
+
+        function toggleModal(mode = 'add', index = null) {
+            modal.classList.toggle('active');
+            if (mode === 'add') {
+                document.getElementById('modalTitle').textContent = 'New Submission';
+                form.reset();
+                document.getElementById('editIndex').value = '';
+                document.getElementById('registrationCode').value = '';
+                // Reset custom labels
+                document.getElementById('monthLabel').textContent = 'January';
+                document.getElementById('typeLabel').textContent = 'Absent';
+            }
+        }
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const index = document.getElementById('editIndex').value;
+            const data = {
+                fullName: document.getElementById('fullName').value,
+                studentId: document.getElementById('studentId').value,
+                registrationCode: document.getElementById('registrationCode').value,
+                group: document.getElementById('groupName').value,
+                subject: document.getElementById('subjectName').value,
+                lecturer: document.getElementById('lecturerName').value,
+                month: document.getElementById('monthName').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                type: document.getElementById('submissionType').value,
+                date: new Date().toLocaleDateString('en-GB')
+            };
+
+            if (index === '') {
+                submissions.push(data);
+                showToast('Submission added successfully');
+            } else {
+                submissions[index] = data;
+                showToast('Submission updated successfully');
+            }
+
+            localStorage.setItem('sanlyoguz_submissions', JSON.stringify(submissions));
+            renderTickets();
+            updateStats();
+            toggleModal();
+        };
+
+        function editSubmission(index) {
+            const list = currentView === 'active' ? submissions : deletedSubmissions;
+            const s = list[index];
+            document.getElementById('modalTitle').textContent = 'Edit Submission';
+            document.getElementById('fullName').value = s.fullName;
+            document.getElementById('studentId').value = s.studentId;
+            document.getElementById('registrationCode').value = s.registrationCode || '';
+            document.getElementById('groupName').value = s.group;
+            document.getElementById('subjectName').value = s.subject;
+            document.getElementById('lecturerName').value = s.lecturer || '';
+            document.getElementById('monthName').value = s.month || 'January';
+            document.getElementById('monthLabel').textContent = s.month || 'January';
+            document.getElementById('startDate').value = s.startDate || '';
+            document.getElementById('endDate').value = s.endDate || '';
+            document.getElementById('submissionType').value = s.type;
+            document.getElementById('typeLabel').textContent = s.type;
+            document.getElementById('editIndex').value = index;
+            modal.classList.add('active');
+        }
+
+        function deleteSubmission(index) {
+            if (confirm('Are you sure you want to move this record to Latest Deleted?')) {
+                const item = submissions.splice(index, 1)[0];
+                deletedSubmissions.push(item);
+                saveAll();
+                renderTickets();
+                updateStats();
+                showToast('Moved to Latest Deleted');
+            }
+        }
+
+        function restoreSubmission(index) {
+            const item = deletedSubmissions.splice(index, 1)[0];
+            submissions.push(item);
+            saveAll();
+            renderTickets();
+            updateStats();
+            showToast('Submission restored');
+        }
+
+        function permanentDelete(index) {
+            if (confirm('Are you sure you want to PERMANENTLY delete this record? This action cannot be undone.')) {
+                deletedSubmissions.splice(index, 1);
+                saveAll();
+                renderTickets();
+                updateStats();
+                showToast('Permanently deleted');
+            }
+        }
+
+        function saveAll() {
+            localStorage.setItem('suboguz_submissions', JSON.stringify(submissions));
+            localStorage.setItem('suboguz_deleted', JSON.stringify(deletedSubmissions));
+        }
+
+        function exportToWord(index) {
+            const list = currentView === 'active' ? submissions : deletedSubmissions;
+            const s = list[index];
+            const fileName = `${s.fullName.replace(/\s+/g, '_')}_SubOguz_Record.doc`;
+
+            const header = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Tutus Record</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #1e293b; }
+                    .header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #6366f1; }
+                    .title { font-size: 28pt; font-weight: 800; color: #6366f1; text-transform: uppercase; letter-spacing: -1px; }
+                    .subtitle { font-size: 12pt; color: #64748b; margin-top: 5px; }
+                    .content { margin-top: 30px; background: #f8fafc; padding: 20px; border-radius: 10px; }
+                    .row { margin-bottom: 12px; display: flex; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+                    .label { font-weight: 700; width: 180px; color: #475569; }
+                    .value { flex: 1; color: #0f172a; font-weight: 500; }
+                    .footer { margin-top: 60px; text-align: center; color: #94a3b8; font-size: 10pt; }
+                    .signature-area { margin-top: 50px; display: flex; justify-content: flex-end; }
+                    .signature-line { border-top: 2px solid #1e293b; width: 220px; text-align: center; padding-top: 5px; font-weight: 700; }
+                </style>
+                </head><body>
+            `;
+
+            const body = `
+                <div class="header">
+                    <div class="title">SubOguz</div>
+                    <div class="subtitle">Next-Generation Submission Management System</div>
+                </div>
+                <div class="content">
+                    <div class="row"><span class="label">Full Name:</span> <span class="value">${s.fullName}</span></div>
+                    <div class="row"><span class="label">Student ID:</span> <span class="value">${s.studentId}</span></div>
+                    <div class="row"><span class="label">Group:</span> <span class="value">${s.group}</span></div>
+                    <div class="row"><span class="label">Registration Code:</span> <span class="value">${s.registrationCode || 'N/A'}</span></div>
+                    <div class="row"><span class="label">Subject:</span> <span class="value">${s.subject}</span></div>
+                    <div class="row"><span class="label">Lecturer:</span> <span class="value">${s.lecturer}</span></div>
+                    <div class="row"><span class="label">Month:</span> <span class="value">${s.month}</span></div>
+                    <div class="row"><span class="label">Duration:</span> <span class="value">${s.startDate} to ${s.endDate}</span></div>
+                    <div class="row"><span class="label">Submission Type:</span> <span class="value">${s.type}</span></div>
+                    <div class="row"><span class="label">Verification Date:</span> <span class="value">${s.date}</span></div>
+                </div>
+                <div class="footer">
+                    <p>© ${new Date().getFullYear()} SubOguz Systems. All records are electronically verified.</p>
+                </div>
+                <div class="signature-area">
+                    <div class="signature-line">Authorized Signatory</div>
+                </div>
+            `;
+
+            const footer = `</body></html>`;
+
+            const source = header + body + footer;
+            const blob = new Blob(['\ufeff', source], {
+                type: 'application/msword'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Exporting to Word...');
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" style="color: var(--primary)"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>${msg}</span>
+            `;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>
+```
